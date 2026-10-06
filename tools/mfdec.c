@@ -1,6 +1,7 @@
 /* mfdec.c - Windows 標準の H.264 デコーダ(Microsoft H264 Video Decoder MFT)で復号し、元の NV12 と比べる(実験)
  *
- *   mfdec <in.bin> <in.bin.sizes> <ref.nv12> <w> <h> [dxva=0]
+ *   mfdec <in.bin> <in.bin.sizes> <ref.nv12> <w> <h> [dxva=0] [dump.nv12]
+ *   dump.nv12 を指定すると、最後に復号したフレームを NV12(w x h)で書く(dxva=0 のとき)。ref が無ければ NUL でよい。
  *
  *   1 フレームずつ入れて出てくるまでの時間を測る。dxva=0 なら CPU で復号してメモリに出し、元の絵との
  *   PSNR(Y・UV)を出す。dxva=1 なら GPU(DXVA)で復号する(絵は GPU にあるので PSNR は出さない)。
@@ -103,8 +104,12 @@ int main(int argc, char **argv)
     f = fopen(argv[1], "rb"); fseek(f, 0, SEEK_END); bitsLen = (size_t)ftell(f); fseek(f, 0, SEEK_SET);
     bits = (BYTE *)malloc(bitsLen); fread(bits, 1, bitsLen, f); fclose(f);
     f = fopen(argv[2], "r"); while (nf < 4096 && fscanf(f, "%u", &sizes[nf]) == 1) nf++; fclose(f);
-    f = fopen(argv[3], "rb"); fseek(f, 0, SEEK_END); refLen = (size_t)ftell(f); fseek(f, 0, SEEK_SET);
-    ref = (BYTE *)malloc(refLen); fread(ref, 1, refLen, f); fclose(f);
+    f = fopen(argv[3], "rb");
+    refLen = 0;
+    if (f) { fseek(f, 0, SEEK_END); refLen = (size_t)ftell(f); fseek(f, 0, SEEK_SET); }
+    ref = (BYTE *)malloc(refLen + 1);
+    if (f) { fread(ref, 1, refLen, f); fclose(f); }
+    if (refLen < fsize) refLen = 0;
 
     CK(CoInitializeEx(NULL, COINIT_MULTITHREADED));
     CK(MFStartup(MF_VERSION, MFSTARTUP_LITE));
@@ -181,7 +186,33 @@ int main(int argc, char **argv)
             if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT) { if (odb.pSample) IMFSample_Release(odb.pSample); break; }
             CK(hr);
             if (nout < 4096) lat[nout] = now_ms() - ti;
-            if (!dxva && nout < (int)(refLen / fsize) * 100) {
+            if (!dxva && argc > 7) {           /* 最後のフレームを書き出す(毎回上書き) */
+                IMFMediaBuffer *ob = NULL;
+                IMF2DBuffer *b2 = NULL;
+                BYTE *q;
+                LONG pitch;
+                IMFSample_ConvertToContiguousBuffer(odb.pSample, &ob);
+                {
+                    DWORD blen = 0;
+                    BOOL  locked2d = FALSE;
+                    pitch = (LONG)g_ow;
+                    if (ob && SUCCEEDED(IMFMediaBuffer_QueryInterface(ob, &IID_IMF2DBuffer, (void **)&b2)) && SUCCEEDED(IMF2DBuffer_Lock2D(b2, &q, &pitch))) locked2d = TRUE;
+                    else if (!ob || FAILED(IMFMediaBuffer_Lock(ob, &q, NULL, &blen))) q = NULL;
+                    if (q) {
+                        FILE *fd = fopen(argv[7], "wb");
+                        int y;
+                        if (fd) {
+                            for (y = 0; y < h; y++) fwrite(q + (size_t)y * pitch, 1, (size_t)w, fd);
+                            for (y = 0; y < h / 2; y++) fwrite(q + (size_t)(g_oh + y) * pitch, 1, (size_t)w, fd);
+                            fclose(fd);
+                        } else printf("書けない %s\n", argv[7]);
+                        if (locked2d) IMF2DBuffer_Unlock2D(b2); else IMFMediaBuffer_Unlock(ob);
+                    } else printf("出力を読めない\n");
+                }
+                if (b2) IMF2DBuffer_Release(b2);
+                if (ob) IMFMediaBuffer_Release(ob);
+            }
+            if (!dxva && refLen) {
                 IMFMediaBuffer *ob = NULL;
                 BYTE *q;
                 DWORD len;

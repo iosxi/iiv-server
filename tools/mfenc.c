@@ -1,6 +1,8 @@
 /* mfenc.c - Media Foundation のハードウェア H.264 / HEVC エンコーダの遅れ・大きさ・CPU を測る(実験)
  *
- *   mfenc <in.nv12> <w> <h> <frames> <out.bin> <cbr|qp> <値(kbps か QP)> [paced=1] [tex=1] [hevc=0]
+ *   mfenc <in.nv12> <w> <h> <frames> <out.bin> <cbr|qp|qp2|qps|q> <値(kbps / QP / 画質)> [paced=1] [tex=1] [hevc=0]
+ *   qp  = 画質一定 + QP を型より前に、qp2 = 型の後に、qps = フレームごとの属性で、q = 画質(0〜100)
+ *   qdyn = 画質 40 で始め、半分のフレームから値(0〜100)へ上げる(途中で変えて効くか)
  *
  *   in.nv12 は NV12 の連番。paced=1 なら 60fps の間隔で入れ(遅れを測る)、0 なら求められるだけ速く入れる。
  *   tex=1 なら D3D11 の NV12 テクスチャで渡す(取り込みと同じ形)、0 ならメモリの NV12。
@@ -160,9 +162,11 @@ int main(int argc, char **argv)
     set_bool(api, &CODECAPI_AVLowLatencyMode, TRUE, "LowLatency");
     set_u32(api, &CODECAPI_AVEncMPVDefaultBPictureCount, 0, "BFrames");
     set_u32(api, &CODECAPI_AVEncMPVGOPSize, 0xFFFFFFFF, "GOP");
-    if (!strcmp(mode, "qp")) {
+    if (!strcmp(mode, "qp") || !strcmp(mode, "qp2") || !strcmp(mode, "qps") || !strcmp(mode, "q") || !strcmp(mode, "qdyn")) {
         set_u32(api, &CODECAPI_AVEncCommonRateControlMode, eAVEncCommonRateControlMode_Quality, "RC=Quality");
-        set_u32(api, &CODECAPI_AVEncVideoEncodeQP, (ULONG)val, "QP");
+        if (!strcmp(mode, "qp")) set_u32(api, &CODECAPI_AVEncVideoEncodeQP, (ULONG)val, "QP");
+        if (!strcmp(mode, "q")) set_u32(api, &CODECAPI_AVEncCommonQuality, (ULONG)val, "Quality");
+        if (!strcmp(mode, "qdyn")) set_u32(api, &CODECAPI_AVEncCommonQuality, 40, "Quality");
     } else {
         set_u32(api, &CODECAPI_AVEncCommonRateControlMode, eAVEncCommonRateControlMode_CBR, "RC=CBR");
         set_u32(api, &CODECAPI_AVEncCommonMeanBitRate, (ULONG)val * 1000, "Bitrate");
@@ -189,6 +193,13 @@ int main(int argc, char **argv)
     CK(IMFTransform_SetInputType(mft, 0, mt, 0));
     IMFMediaType_Release(mt);
 
+    if (!strcmp(mode, "qp2")) set_u32(api, &CODECAPI_AVEncVideoEncodeQP, (ULONG)val, "QP(型の後)");
+    {
+        VARIANT v;
+        VariantInit(&v);
+        if (SUCCEEDED(ICodecAPI_GetValue(api, &CODECAPI_AVEncVideoEncodeQP, &v))) printf("  読み返した QP: %lu (vt %d)\n", v.ulVal, v.vt);
+        else printf("  QP は読み返せない\n");
+    }
     CK(IMFTransform_QueryInterface(mft, &IID_IMFMediaEventGenerator, (void **)&gen));
     CK(IMFTransform_ProcessMessage(mft, MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, 0));
     CK(IMFTransform_ProcessMessage(mft, MFT_MESSAGE_NOTIFY_START_OF_STREAM, 0));
@@ -235,6 +246,8 @@ int main(int argc, char **argv)
             IMFSample_AddBuffer(s, b);
             IMFSample_SetSampleTime(s, (LONGLONG)nin * 166667);
             IMFSample_SetSampleDuration(s, 166667);
+            if (!strcmp(mode, "qps")) IMFSample_SetUINT64(s, &MFSampleExtension_VideoEncodeQP, (UINT64)val);
+            if (!strcmp(mode, "qdyn") && nin == frames / 2) set_u32(api, &CODECAPI_AVEncCommonQuality, (ULONG)val, "Quality(途中)");
             tIn[nin] = now_ms();
             CK(IMFTransform_ProcessInput(mft, 0, s, 0));
             IMFSample_Release(s);

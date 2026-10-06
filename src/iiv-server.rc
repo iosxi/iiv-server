@@ -1,0 +1,85 @@
+#pragma code_page(65001)
+#include <windows.h>
+#include <commctrl.h>
+#include "resource.h"
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "iiv-server.manifest"
+
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+IDI_APP    ICON "iiv-server.ico"
+IDI_ACTIVE ICON "iiv-server-active.ico"
+
+// ------------------------------------------------------------------
+//  設定画面
+// ------------------------------------------------------------------
+IDD_SETTINGS DIALOGEX 0, 0, 320, 408
+STYLE DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "iiv-server"
+FONT 9, "Yu Gothic UI", 400, 0, 0x80
+BEGIN
+    LTEXT           "状態", IDC_H_STATUS, 12, 9, 200, 11
+    LTEXT           "", IDC_STATUS, 12, 23, 296, 30, SS_NOPREFIX
+    LTEXT           "接続中の相手", IDC_H_CLIENTS, 12, 58, 200, 11
+    LISTBOX         IDC_CLIENTS, 12, 71, 230, 36, LBS_NOINTEGRALHEIGHT | LBS_NOSEL | WS_VSCROLL | WS_BORDER
+    PUSHBUTTON      "全員を切断(&D)", IDC_DISCONNECT, 248, 71, 60, 15
+
+    LTEXT           "接続のしかた", IDC_H_CONN, 12, 116, 200, 11
+    LTEXT           "パスワード(&P):", -1, 12, 133, 92, 9
+    EDITTEXT        IDC_PASSWORD, 106, 131, 110, 13, ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "", IDC_PWNOTE, 222, 133, 86, 9, SS_NOPREFIX
+    AUTOCHECKBOX    "見るだけのパスワード(&V):", IDC_USEVIEWPW, 12, 149, 92, 10
+    EDITTEXT        IDC_VIEWPW, 106, 147, 110, 13, ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "パスワードは 64 文字まで。変えないときは空のまま。", IDC_HINT_PW, 12, 164, 296, 9
+    LTEXT           "ポート(&O):", -1, 12, 181, 92, 9
+    EDITTEXT        IDC_PORT, 106, 179, 50, 13, ES_NUMBER
+    LTEXT           "受け付ける相手(&L):", -1, 12, 197, 92, 9
+    COMBOBOX        IDC_LISTEN, 106, 195, 202, 60, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "送る画面(&I):", -1, 12, 213, 92, 9
+    COMBOBOX        IDC_DISPLAY, 106, 211, 202, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    AUTOCHECKBOX    "見るだけにする(誰にも操作させない)(&W)", IDC_VIEWONLY, 12, 230, 296, 10
+    AUTOCHECKBOX    "接続・切断を通知で知らせる(&N)", IDC_NOTIFY, 12, 244, 296, 10
+    AUTOCHECKBOX    "マウスが無い PC でもカーソルを見せる(Windows が隠していても)(&M)", IDC_SHOWCURSOR, 12, 258, 296, 10
+    AUTOCHECKBOX    "接続されている間はスリープさせず、画面も消さない(&S)", IDC_NOSLEEP, 12, 272, 296, 10
+
+    LTEXT           "Windows の起動時から", IDC_H_SERVICE, 12, 290, 200, 11
+    LTEXT           "", IDC_SVCTEXT, 12, 304, 214, 18, SS_NOPREFIX
+    PUSHBUTTON      "", IDC_SERVICE, 232, 304, 76, 15
+
+    LTEXT           "ネットワークの許可", IDC_H_FW, 12, 328, 200, 11
+    LTEXT           "", IDC_FWTEXT, 12, 342, 214, 20, SS_NOPREFIX
+    PUSHBUTTON      "許可を消す(&F)...", IDC_FWREMOVE, 232, 342, 76, 15
+    LTEXT           "", IDC_INIPATH, 12, 368, 296, 9, SS_PATHELLIPSIS | SS_NOPREFIX
+
+    DEFPUSHBUTTON   "OK", IDOK, 196, 388, 54, 14
+    PUSHBUTTON      "キャンセル", IDCANCEL, 254, 388, 54, 14
+END
+
+// ------------------------------------------------------------------
+//  版
+// ------------------------------------------------------------------
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1, 0, 0, 0
+PRODUCTVERSION  1, 0, 0, 0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041104B0"
+        BEGIN
+            VALUE "CompanyName",      "iosxi"
+            VALUE "FileDescription",  "iiv-server (リモート デスクトップ)"
+            VALUE "FileVersion",      "1.0.0"
+            VALUE "InternalName",     "iiv-server"
+            VALUE "OriginalFilename", "iiv-server.exe"
+            VALUE "ProductName",      "iiv"
+            VALUE "ProductVersion",   "1.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0411, 1200
+    END
+END
