@@ -16,6 +16,9 @@
 ### exe を変更したとき
 
 ソースを直したら **`build.bat` で exe を作り直してからコミットする**。exe はリポジトリに追跡させている。
+アイコンは `python tools/make-icon.py`(Pillow で 1024px に描いて縮める)。サーバーは青いタワー型 PC と外へ出る矢印、接続中(`-active.ico`)は電源ボタンと矢印の縁が緑。クライアントは緑のノート PC と画面へ入る矢印。
+Pillow の `polygon(..., outline=, width=)` は縁を内側にしか描かない(白い矢印が細くなる)。縁は `line(..., joint="curve")` で
+輪郭をなぞってから塗りを重ねる。
 
 ### iiv-client と同じファイル
 

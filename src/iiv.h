@@ -40,8 +40,8 @@
 #include "iivproto.h"
 
 #define APP_NAME     L"iiv-server"
-#define APP_VERSION  L"1.0.0"
-#define APP_VERSION_A "1.0.0"
+#define APP_VERSION  L"1.1.0"
+#define APP_VERSION_A "1.1.0"
 
 #define WM_APP_TRAY     (WM_APP + 1)
 #define WM_APP_COMMAND  (WM_APP + 2)    /* 別のプロセスから(-exit など) */
