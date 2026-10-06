@@ -1,3 +1,5 @@
 build/
 *.obj
 __pycache__/
+iiv-server.ini
+iiv-server.log
