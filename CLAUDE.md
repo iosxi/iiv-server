@@ -11,6 +11,7 @@
 - リリースの添付物: **`iiv-server.exe`**。改名せず、そのまま `gh release create` に渡す。
 - バージョン: タグの `vN` とは別に、`src/iiv-server.rc` の VERSIONINFO、`src/iiv-server.manifest` の
   `assemblyIdentity`、`src/iiv.h` の `APP_VERSION` / `APP_VERSION_A` がある。機能が変わったら全部上げる。
+- `src/iiv.h` の `APP_RELEASE`(L"vN")は設定画面のタイトルに出る。**リリースのたびにタグと同じ vN にする。**
 - 前身は `../iivnc-server`(VNC のサーバー。そのまま残す)。iiv は 2026-10-06 に VNC を捨てて作り始めた。
 
 ### exe を変更したとき

@@ -447,7 +447,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE prev, LPWSTR cmdline, int show)
         /* すでに開いていれば、それを手前に出して終わる(アイコンを続けて押したときなど) */
         HANDLE one = CreateMutexW(NULL, FALSE, L"Local\\iiv-server-svcsettings");
         if (one && GetLastError() == ERROR_ALREADY_EXISTS) {
-            HWND other = FindWindowW(L"#32770", L"iiv-server");
+            HWND other = FindWindowW(L"#32770", APP_TITLE);
             if (other) {
                 if (IsIconic(other)) ShowWindow(other, SW_RESTORE);
                 SetForegroundWindow(other);

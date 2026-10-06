@@ -369,6 +369,7 @@ static INT_PTR CALLBACK dlg_proc(HWND dlg, UINT msg, WPARAM wp, LPARAM lp)
         HFONT    base = (HFONT)SendMessageW(dlg, WM_GETFONT, 0, 0);
         RECT     r, pad = { 0, 0, 0, 7 };
         static const int heads[] = { IDC_H_STATUS, IDC_H_CLIENTS, IDC_H_CONN, IDC_H_SERVICE, IDC_H_FW };
+        SetWindowTextW(dlg, APP_TITLE);     /* 「iiv-server v3」(main.c がこの題で探す) */
         int i;
         HICON ic = (HICON)LoadImageW(g_inst, MAKEINTRESOURCEW(1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0);
         HICON ib = (HICON)LoadImageW(g_inst, MAKEINTRESOURCEW(1), IMAGE_ICON, GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), 0);

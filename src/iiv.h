@@ -40,8 +40,10 @@
 #include "iivproto.h"
 
 #define APP_NAME     L"iiv-server"
-#define APP_VERSION  L"1.1.0"
-#define APP_VERSION_A "1.1.0"
+#define APP_VERSION  L"1.2.0"
+#define APP_VERSION_A "1.2.0"
+#define APP_RELEASE  L"v3"               /* リリースのタグ(タイトルに出す。リリースのたびに上げる) */
+#define APP_TITLE    APP_NAME L" " APP_RELEASE
 
 #define WM_APP_TRAY     (WM_APP + 1)
 #define WM_APP_COMMAND  (WM_APP + 2)    /* 別のプロセスから(-exit など) */
